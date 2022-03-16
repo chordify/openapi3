@@ -57,7 +57,8 @@ import Data.OpenApi.Internal.AesonUtils (AesonDefaultValue (..), HasSwaggerAeson
                                          sopSwaggerGenericToJSON, sopSwaggerGenericToJSONWithOpts, sopSwaggerGenericParseJSONWithOpts)
 import Data.OpenApi.Internal.Utils
 import Generics.SOP.TH                  (deriveGeneric)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
+import Control.Arrow (first)
 
 -- $setup
 -- >>> :seti -XDataKinds
@@ -1007,7 +1008,10 @@ instance Hashable ExternalDocs
 
 -- | A simple object to allow referencing other definitions in the specification.
 -- It can be used to reference parameters and responses that are defined at the top level for reuse.
-newtype Reference = Reference { getReference :: Text }
+data Reference = Reference 
+  { externalRef :: Maybe Text 
+  , getReference :: Text
+  }
   deriving (Eq, Show, Data, Typeable)
 
 data Referenced a
@@ -1431,10 +1435,10 @@ instance ToJSON SecurityDefinitions where
   toJSON (SecurityDefinitions sd) = toJSON sd
 
 instance ToJSON Reference where
-  toJSON (Reference ref) = object [ "$ref" .= ref ]
+  toJSON (Reference ex ref) = object [ "$ref" .= (fromMaybe "" ex <> ref) ]
 
 referencedToJSON :: ToJSON a => Text -> Referenced a -> Value
-referencedToJSON prefix (Ref (Reference ref)) = object [ "$ref" .= (prefix <> ref) ]
+referencedToJSON prefix (Ref (Reference ex ref)) = object [ "$ref" .= (fromMaybe "" ex <> prefix <> ref) ]
 referencedToJSON _ (Inline x) = toJSON x
 
 instance ToJSON (Referenced Schema)   where toJSON = referencedToJSON "#/components/schemas/"
@@ -1601,8 +1605,11 @@ instance FromJSON Link where
   parseJSON = sopSwaggerGenericParseJSON
 
 instance FromJSON Reference where
-  parseJSON (Object o) = Reference <$> o .: "$ref"
+  parseJSON (Object o) = uncurry Reference . breakOutExternalRef <$> o .: "$ref"
   parseJSON _ = empty
+
+breakOutExternalRef :: Text -> (Maybe Text, Text)
+breakOutExternalRef s = first (fmap (fmap (uncurry Text.cons)) Text.uncons) $ Text.breakOn "#" s
 
 referencedParseJSON :: FromJSON a => Text -> Value -> JSON.Parser (Referenced a)
 referencedParseJSON prefix js@(Object o) = do
@@ -1612,9 +1619,10 @@ referencedParseJSON prefix js@(Object o) = do
     Just s  -> Ref <$> parseRef s
   where
     parseRef s = do
-      case Text.stripPrefix prefix s of
+      let (ext, f) = first (fmap (fmap (uncurry Text.cons)) Text.uncons) $ Text.breakOn "#" s
+      case Text.stripPrefix prefix f of
         Nothing     -> fail $ "expected $ref of the form \"" <> Text.unpack prefix <> "*\", but got " <> show s
-        Just suffix -> pure (Reference suffix)
+        Just suffix -> pure (Reference ext f)
 referencedParseJSON _ _ = fail "referenceParseJSON: not an object"
 
 instance FromJSON (Referenced Schema)   where parseJSON = referencedParseJSON "#/components/schemas/"

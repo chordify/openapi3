@@ -297,8 +297,8 @@ setResponseForWith ops f code dres swag = swag
   & ops . at code %~ Just . Inline . combine
   where
     (defs, new) = runDeclare dres mempty
-
-    combine (Just (Ref (Reference n))) = case swag ^. components.responses.at n of
+    --TODO: maybe this needs better handling for externals
+    combine (Just (Ref (Reference _ n))) = case swag ^. components.responses.at n of
       Just old -> f old new
       Nothing  -> new -- response name can't be dereferenced, replacing with new response
     combine (Just (Inline old)) = f old new
