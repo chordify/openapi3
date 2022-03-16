@@ -241,7 +241,7 @@ schemaSimpleModelExample = mempty
   & required .~ [ "name" ]
   & properties .~
       [ ("name", Inline (mempty & type_ ?~ OpenApiString))
-      , ("address", Ref (Reference "Address"))
+      , ("address", Ref (Reference Nothing "Address"))
       , ("age", Inline $ mempty
             & minimum_ ?~ 0
             & type_    ?~ OpenApiInteger
@@ -1005,7 +1005,7 @@ petstoreExampleJSON = [aesonQQ|
 compositionSchemaExample :: Schema
 compositionSchemaExample = mempty
   & Data.OpenApi.allOf ?~ [
-      Ref (Reference "Other")
+      Ref (Reference Nothing "Other")
     , Inline (mempty
              & type_ ?~ OpenApiObject
              & properties .~

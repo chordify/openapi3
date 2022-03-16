@@ -296,7 +296,8 @@ sub_ = lmap . view
 
 -- | Validate value against a schema given schema reference and validation function.
 withRef :: Reference -> (Schema -> Validation s a) -> Validation s a
-withRef (Reference ref) f = withConfig $ \cfg ->
+withRef (Reference (Just x) ref) _ = invalid $ "can't validate external references: " ++ show (x <> ref)
+withRef (Reference Nothing ref) f = withConfig $ \cfg ->
   case InsOrdHashMap.lookup ref (configDefinitions cfg) of
     Nothing -> invalid $ "unknown schema " ++ show ref
     Just (Ref _) -> invalid "" -- TODO(isomorpheme)
@@ -389,7 +390,7 @@ validateObject o = withSchema $ \sch ->
       Just (Success pvalue) ->
         let ref = fromMaybe pvalue $ InsOrdHashMap.lookup pvalue types
         -- TODO ref may be name or reference
-        in validateWithSchemaRef (Ref (Reference ref)) (Object o)
+        in validateWithSchemaRef (Ref (Reference Nothing ref)) (Object o)
       Just (Error msg)   -> invalid ("failed to parse discriminator property " ++ show pname ++ ": " ++ show msg)
       Nothing            -> invalid ("discriminator property " ++ show pname ++ "is missing")
     Nothing -> do

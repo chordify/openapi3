@@ -28,7 +28,7 @@
 --   & #components % #schemas .~ IOHM.fromList [ ("User", Inline $ mempty & #type ?~ OpenApiString) ]
 --   & #paths .~
 --     IOHM.fromList [ ("/user", mempty & #get ?~ (mempty
---         & at 200 ?~ ("OK" & #_Inline % #content % at "application/json" ?~ (mempty & #schema ?~ Ref (Reference "User")))
+--         & at 200 ?~ ("OK" & #_Inline % #content % at "application/json" ?~ (mempty & #schema ?~ Ref (Reference Nothing "User")))
 --         & at 404 ?~ "User info not found")) ]
 -- :}
 -- {
