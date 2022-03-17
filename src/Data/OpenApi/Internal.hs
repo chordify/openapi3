@@ -1622,7 +1622,7 @@ referencedParseJSON prefix js@(Object o) = do
       let (ext, f) = first (fmap (fmap (uncurry Text.cons)) Text.uncons) $ Text.breakOn "#" s
       case Text.stripPrefix prefix f of
         Nothing     -> fail $ "expected $ref of the form \"" <> Text.unpack prefix <> "*\", but got " <> show s
-        Just suffix -> pure (Reference ext f)
+        Just suffix -> pure (Reference ext suffix)
 referencedParseJSON _ _ = fail "referenceParseJSON: not an object"
 
 instance FromJSON (Referenced Schema)   where parseJSON = referencedParseJSON "#/components/schemas/"
