@@ -101,7 +101,7 @@ schemaGen defns schema =
 
 dereference :: Definitions a -> Referenced a -> a
 dereference _ (Inline a)               = a
-dereference defs (Ref (Reference Nothing ref)) = fromJust $ M.lookup ref defs
+dereference defs (Ref (Reference Nothing ref)) = (\(Inline s) -> s) $ fromJust $ M.lookup ref defs
 dereference defs (Ref (Reference (Just x) ref)) = error "Can't handle external refs"
 
 genValue :: (ToSchema a) => Proxy a -> Gen Value

@@ -239,7 +239,7 @@ declareSchemaRef proxy = do
       -- this schema this time and thus simply return the reference.
       known <- looks (InsOrdHashMap.member name)
       when (not known) $ do
-        declare [(name, schema)]
+        declare [(name, Inline schema)]
         void $ declareNamedSchema proxy
       return $ Ref (Reference Nothing name)
     _ -> Inline <$> declareSchema proxy
@@ -318,7 +318,7 @@ inlineNonRecursiveSchemas defs = inlineSchemasWhen nonRecursive defs
         when (not seen) $ do
           declare [name]
           traverse_ usedNames (InsOrdHashMap.lookup name defs)
-      Inline subschema -> usedNames subschema
+      x -> usedNames x
 
 -- | Make an unrestrictive sketch of a @'Schema'@ based on a @'ToJSON'@ instance.
 -- Produced schema can be used for further refinement.
@@ -969,7 +969,7 @@ gdeclareSchemaRef opts proxy = do
       -- this schema this time and thus simply return the reference.
       known <- looks (InsOrdHashMap.member name)
       when (not known) $ do
-        declare [(name, schema)]
+        declare [(name, Inline schema)]
         void $ gdeclareNamedSchema opts proxy mempty
       return $ Ref (Reference Nothing name)
     _ -> Inline <$> gdeclareSchema opts proxy

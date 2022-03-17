@@ -458,11 +458,11 @@ responsesDefinitionExampleJSON = [aesonQQ|
 
 securityDefinitionsExample :: SecurityDefinitions
 securityDefinitionsExample = SecurityDefinitions
-  [ ("api_key", SecurityScheme
+  [ ("api_key", Inline $ SecurityScheme
       { _securitySchemeType = SecuritySchemeApiKey (ApiKeyParams "api_key" ApiKeyHeader)
       , _securitySchemeDescription = Nothing
       , _securitySchemeExtensions = mempty })
-  , ("petstore_auth", SecurityScheme
+  , ("petstore_auth", Inline $ SecurityScheme
       { _securitySchemeType = SecuritySchemeOAuth2 (mempty & implicit ?~ OAuth2Flow
             { _oAuth2Params = OAuth2ImplicitFlow "http://swagger.io/api/oauth/dialog"
             , _oAath2RefreshUrl = Nothing
@@ -500,7 +500,7 @@ securityDefinitionsExampleJSON = [aesonQQ|
 
 oAuth2SecurityDefinitionsReadExample :: SecurityDefinitions
 oAuth2SecurityDefinitionsReadExample = SecurityDefinitions
-  [ ("petstore_auth", SecurityScheme
+  [ ("petstore_auth", Inline $ SecurityScheme
       { _securitySchemeType = SecuritySchemeOAuth2 (mempty & implicit ?~ OAuth2Flow
             { _oAuth2Params = OAuth2ImplicitFlow "http://swagger.io/api/oauth/dialog"
             , _oAath2RefreshUrl = Nothing
@@ -513,7 +513,7 @@ oAuth2SecurityDefinitionsReadExample = SecurityDefinitions
 
 oAuth2SecurityDefinitionsWriteExample :: SecurityDefinitions
 oAuth2SecurityDefinitionsWriteExample = SecurityDefinitions
-  [ ("petstore_auth", SecurityScheme
+  [ ("petstore_auth", Inline $ SecurityScheme
       { _securitySchemeType = SecuritySchemeOAuth2 (mempty & implicit ?~ OAuth2Flow
             { _oAuth2Params = OAuth2ImplicitFlow "http://swagger.io/api/oauth/dialog"
             , _oAath2RefreshUrl = Nothing
@@ -942,6 +942,9 @@ petstoreExampleJSON = [aesonQQ|
             "type": "string"
           }
         }
+      },
+      "Foo": {
+        "$ref": "#/components/schemas/Pet"
       }
     }
   }

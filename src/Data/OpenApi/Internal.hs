@@ -67,7 +67,7 @@ import Control.Arrow (first)
 -- >>> import Data.OpenApi.Internal.Utils
 
 -- | A list of definitions that can be used in references.
-type Definitions = InsOrdHashMap Text
+type Definitions a = InsOrdHashMap Text (Referenced a)
 
 -- | This is the root document object for the API specification.
 data OpenApi = OpenApi
@@ -1030,8 +1030,11 @@ data AdditionalProperties
   | AdditionalPropertiesSchema (Referenced Schema)
   deriving (Eq, Show, Data, Typeable)
 
-newtype SpecificationExtensions = SpecificationExtensions { _unDefs :: Definitions Value}
-  deriving (Eq, Show, Hashable, Data, Typeable, Semigroup, Monoid, SwaggerMonoid)
+newtype SpecificationExtensions = SpecificationExtensions { _unDefs :: InsOrdHashMap Text Value}
+  deriving (Eq, Show, Data, Generic, Typeable, Semigroup, Monoid, SwaggerMonoid)
+
+instance Hashable SpecificationExtensions
+
 
 instance AesonDefaultValue SpecificationExtensions where
   defaultValue = Just (SpecificationExtensions mempty)
@@ -1180,8 +1183,7 @@ instance Semigroup SecurityScheme where
   l <> _ = l
 
 instance Semigroup SecurityDefinitions where
-  (SecurityDefinitions sd1) <> (SecurityDefinitions sd2) =
-     SecurityDefinitions $ InsOrdHashMap.unionWith (<>) sd1 sd2
+  (<>) = genericMappend
 
 instance Monoid SecurityDefinitions where
   mempty = SecurityDefinitions InsOrdHashMap.empty
@@ -1449,6 +1451,7 @@ instance ToJSON (Referenced Example)  where toJSON = referencedToJSON "#/compone
 instance ToJSON (Referenced Header)   where toJSON = referencedToJSON "#/components/headers/"
 instance ToJSON (Referenced Link)     where toJSON = referencedToJSON "#/components/links/"
 instance ToJSON (Referenced Callback) where toJSON = referencedToJSON "#/components/callbacks/"
+instance ToJSON (Referenced SecurityScheme) where toJSON = referencedToJSON "#/components/securitySchemes/"
 
 instance ToJSON AdditionalProperties where
   toJSON (AdditionalPropertiesAllowed b) = toJSON b
@@ -1633,6 +1636,7 @@ instance FromJSON (Referenced Example)  where parseJSON = referencedParseJSON "#
 instance FromJSON (Referenced Header)   where parseJSON = referencedParseJSON "#/components/headers/"
 instance FromJSON (Referenced Link)     where parseJSON = referencedParseJSON "#/components/links/"
 instance FromJSON (Referenced Callback) where parseJSON = referencedParseJSON "#/components/callbacks/"
+instance FromJSON (Referenced SecurityScheme) where parseJSON = referencedParseJSON "#/components/securitySchemes/"
 
 instance FromJSON AdditionalProperties where
   parseJSON (Bool b) = pure $ AdditionalPropertiesAllowed b

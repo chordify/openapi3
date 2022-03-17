@@ -296,8 +296,8 @@ withRef :: Reference -> (Schema -> Validation s a) -> Validation s a
 withRef (Reference (Just x) ref) _ = invalid $ "can't validate external references: " ++ show (x <> ref)
 withRef (Reference Nothing ref) f = withConfig $ \cfg ->
   case InsOrdHashMap.lookup ref (configDefinitions cfg) of
-    Nothing -> invalid $ "unknown schema " ++ show ref
-    Just s  -> f s
+    Just (Inline s)  -> f s
+    _ -> invalid $ "unknown schema " ++ show ref
 
 validateWithSchemaRef :: Referenced Schema -> Value -> Validation s ()
 validateWithSchemaRef (Ref ref)  js = withRef ref $ \sch -> sub sch (validateWithSchema js)
