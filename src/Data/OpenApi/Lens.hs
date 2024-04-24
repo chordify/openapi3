@@ -24,6 +24,7 @@ import Data.Scientific (Scientific)
 import Data.OpenApi.Internal
 import Data.OpenApi.Internal.Utils
 import Data.Text (Text)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 
 -- * Classy lenses
 
@@ -103,9 +104,9 @@ instance Ixed Operation where ix n = responses . ix n
 instance At   Operation where at n = responses . at n
 
 instance Ixed SpecificationExtensions where
-  ix n = coerced @_ @_ @(Definitions Value) . ix n
+  ix n = coerced @_ @_ @(InsOrdHashMap Text Value) . ix n
 instance At   SpecificationExtensions where
-  at n = coerced @_ @_ @(Definitions Value) . at n
+  at n = coerced @_ @_ @(InsOrdHashMap Text Value) . at n
 
 instance HasType NamedSchema (Maybe OpenApiType) where type_ = schema.type_
 

@@ -299,7 +299,8 @@ withRef :: Reference -> (Schema -> Validation s a) -> Validation s a
 withRef (Reference ref) f = withConfig $ \cfg ->
   case InsOrdHashMap.lookup ref (configDefinitions cfg) of
     Nothing -> invalid $ "unknown schema " ++ show ref
-    Just s  -> f s
+    Just (Ref _) -> invalid "" -- TODO(isomorpheme)
+    Just (Inline s)  -> f s
 
 validateWithSchemaRef :: Referenced Schema -> Value -> Validation s ()
 validateWithSchemaRef (Ref ref)  js = withRef ref $ \sch -> sub sch (validateWithSchema js)

@@ -25,7 +25,7 @@
 --
 -- >>> :{
 -- BSL.putStrLn $ encodePretty $ (mempty :: OpenApi)
---   & #components % #schemas .~ IOHM.fromList [ ("User", mempty & #type ?~ OpenApiString) ]
+--   & #components % #schemas .~ IOHM.fromList [ ("User", Inline $ mempty & #type ?~ OpenApiString) ]
 --   & #paths .~
 --     IOHM.fromList [ ("/user", mempty & #get ?~ (mempty
 --         & at 200 ?~ ("OK" & #_Inline % #content % at "application/json" ?~ (mempty & #schema ?~ Ref (Reference "User")))
@@ -107,6 +107,7 @@ import Data.Scientific (Scientific)
 import Data.OpenApi.Internal
 import Data.OpenApi.Internal.Utils
 import Data.Text (Text)
+import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import Optics.Core
 import Optics.TH
 
@@ -202,10 +203,10 @@ instance At   Operation where
   {-# INLINE at #-}
 
 instance Ixed SpecificationExtensions where
-  ix n = coercedTo @(Definitions Value) % ix n
+  ix n = coercedTo @(InsOrdHashMap Text Value) % ix n
   {-# INLINE ix #-}
 instance At   SpecificationExtensions where
-  at n = coercedTo @(Definitions Value) % at n
+  at n = coercedTo @(InsOrdHashMap Text Value) % at n
   {-# INLINE at #-}
 
 -- #type

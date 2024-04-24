@@ -70,7 +70,7 @@ import Text.ParserCombinators.ReadP (readP_to_S)
 -- >>> import Data.OpenApi.Internal.Utils
 
 -- | A list of definitions that can be used in references.
-type Definitions = InsOrdHashMap Text
+type Definitions a = InsOrdHashMap Text (Referenced a)
 
 -- | This is the root document object for the API specification.
 data OpenApi = OpenApi
@@ -1043,7 +1043,7 @@ data AdditionalProperties
 
 newtype OpenApiSpecVersion = OpenApiSpecVersion {getVersion :: Version} deriving (Eq, Show, Generic, Data, Typeable)
 
-newtype SpecificationExtensions = SpecificationExtensions {getSpecificationExtensions :: Definitions Value}
+newtype SpecificationExtensions = SpecificationExtensions {getSpecificationExtensions :: InsOrdHashMap Text Value}
   deriving (Eq, Show, Hashable, Data, Typeable, Semigroup, Monoid, SwaggerMonoid, AesonDefaultValue)
 
 -------------------------------------------------------------------------------
@@ -1199,7 +1199,13 @@ instance Semigroup SecurityScheme where
 
 instance Semigroup SecurityDefinitions where
   (SecurityDefinitions sd1) <> (SecurityDefinitions sd2) =
-     SecurityDefinitions $ InsOrdHashMap.unionWith (<>) sd1 sd2
+    SecurityDefinitions $ InsOrdHashMap.unionWith mergeRefSecuritySchemes sd1 sd2
+    where
+      -- If there's a conflict between two inline security schemes, we merge them
+      -- recursively, but otherwise we behave as the 'Semigroup' instance on
+      -- 'InsOrdHashMap' would, preferring the left value.
+      mergeRefSecuritySchemes (Inline s1) (Inline s2) = Inline (s1 <> s2)
+      mergeRefSecuritySchemes l _ = l
 
 instance Monoid SecurityDefinitions where
   mempty = SecurityDefinitions InsOrdHashMap.empty
@@ -1502,6 +1508,7 @@ instance ToJSON (Referenced Example)  where toJSON = referencedToJSON "#/compone
 instance ToJSON (Referenced Header)   where toJSON = referencedToJSON "#/components/headers/"
 instance ToJSON (Referenced Link)     where toJSON = referencedToJSON "#/components/links/"
 instance ToJSON (Referenced Callback) where toJSON = referencedToJSON "#/components/callbacks/"
+instance ToJSON (Referenced SecurityScheme) where toJSON = referencedToJSON "#/components/securitySchemes/"
 
 instance ToJSON AdditionalProperties where
   toJSON (AdditionalPropertiesAllowed b) = toJSON b
@@ -1692,6 +1699,7 @@ instance FromJSON (Referenced Example)  where parseJSON = referencedParseJSON "#
 instance FromJSON (Referenced Header)   where parseJSON = referencedParseJSON "#/components/headers/"
 instance FromJSON (Referenced Link)     where parseJSON = referencedParseJSON "#/components/links/"
 instance FromJSON (Referenced Callback) where parseJSON = referencedParseJSON "#/components/callbacks/"
+instance FromJSON (Referenced SecurityScheme) where parseJSON = referencedParseJSON "#/components/securitySchemes/"
 
 instance FromJSON AdditionalProperties where
   parseJSON (Bool b) = pure $ AdditionalPropertiesAllowed b
