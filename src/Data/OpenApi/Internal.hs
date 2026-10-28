@@ -15,6 +15,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Data.OpenApi.Internal where
 
 import Prelude ()
@@ -49,8 +50,8 @@ import           Network.HTTP.Media    (MediaType, mainType, parameters, parseAc
                                         (/:))
 import           Text.Read             (readMaybe)
 
-import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
-import qualified Data.HashMap.Strict.InsOrd as InsOrdHashMap
+import           Data.HashMap.Strict.InsOrd.Compat (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd.Compat as InsOrdHashMap
 
 import Data.OpenApi.Aeson.Compat        (deleteKey, keyToText, objectToList, objectFromList)
 import Data.OpenApi.Internal.AesonUtils (AesonDefaultValue (..), HasSwaggerAesonOptions (..),
@@ -362,7 +363,10 @@ instance Data MediaType where
 
   dataTypeOf _ = mediaTypeData
 
+mediaTypeConstr :: Constr
 mediaTypeConstr = mkConstr mediaTypeData "MediaType" [] Prefix
+
+mediaTypeData :: DataType
 mediaTypeData = mkDataType "MediaType" [mediaTypeConstr]
 
 instance Hashable MediaType where
